@@ -1,6 +1,3 @@
-Here's a concise README.md for your `gemini-cli-chatbot` repository. You can copy and paste this directly into your project.
-
-```markdown
 # Gemini CLI Chatbot
 
 A real-time command-line chatbot powered by Google's Gemini API. Supports dynamic configuration of model, temperature, and token limits, conversation history, and export/import capabilities.
@@ -42,16 +39,19 @@ python chatbot.py
 /load [file]              Load a previously exported .json conversation
 ```
 
-> Exported conversations are saved to the `chat_export/` subfolder.
+Exported conversations are saved to the `chat_export/` subfolder.
 
 ### Example Session
 
 ```
 You: /temp 1.2
+
 System Success: Temperature value set to 1.2.
 
 You: /model
+
 Please input a valid number to select a model between 1 and 4.
+
 ---------- Models Menu ----------
  1 gemini-3.1-flash-lite
  2 gemini-3.5-flash
@@ -59,9 +59,11 @@ Please input a valid number to select a model between 1 and 4.
  4 gemini-2.5-flash-lite
 ---------------------------------
 
-You: 2
+You: /model 2
+
 System Success: Model set to gemini-3.5-flash.
 
 You: What's the capital of France?
+
 Gemini: The capital of France is Paris.
 ```
