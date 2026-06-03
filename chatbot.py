@@ -18,7 +18,7 @@ def show_help_menu():
     print("\n---------- Help Menu ----------")
     print("    /help                : Shows this help menu")
     print("    /status              : Shows the current active configuration")
-    print("    /temp <0.0 - 2.0>    : Sets the temperature value>")
+    print("    /temp <0.0 - 2.0>    : Sets the temperature value")
     print("    /max <int>           : Set the maximum output tokens value")
     print("    /model <int>         : Sets the model (and shows list)")
     print("    /exit or /quit       : Ends the session")
@@ -48,12 +48,12 @@ def export_chat(filename, history, export_mode):
                 else:
                     f.write(f"Gemini: {text}\n")
                 f.write("\n") # empty line separator
-        print(f"System Success: Conversation history saved to {full_path}")
+        print(f"\nSystem Success: Conversation history saved to {full_path}\n")
 
     elif export_mode == "json":
         with open(full_path, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2)
-        print(f"System Success: Conversation history saved to {full_path}")
+        print(f"\nSystem Success: Conversation history saved to {full_path}\n")
 
 def show_status_menu(current_model, temperature, max_output_tokens, history_length):
     print("\n---------- Status Menu ----------")
@@ -73,7 +73,7 @@ def initialize_client():
 def main():
     client = initialize_client()
 
-    print("\nGemini Chatbot Initialized! Type /exit or /quit to end the conversation.\n")
+    print("\nGemini Chatbot Initialized! Type /help to display the help menu.\n")
 
     current_model = "gemini-3.1-flash-lite"
     temperature = 0.0
@@ -91,7 +91,7 @@ def main():
             command = parts[0].lower()
             args = parts[1:]
             if command in ["/quit", "/exit"]:
-                print(f"\nGemini: Goodbye!")
+                print(f"\nGemini: Goodbye!\n")
                 break
 
             elif command == "/status":
@@ -174,6 +174,14 @@ def main():
                         continue
                     
                     else:
+                        raw_filename = " ".join(args).strip("'").strip('"')
+                        if not raw_filename:
+                            print("\nInvalid filename.\n")
+                            continue
+                        if " " in raw_filename:
+                            print("\nFilenames with spaces are not allowed. Use underscores or dashes.\n")
+                            continue
+
                         filename = args[0]
                         if not filename.endswith(".txt"):
                             filename += ".txt"
@@ -197,6 +205,14 @@ def main():
                         export_chat(filename, history, export_mode)
                         continue
                     else:
+                        raw_filename = " ".join(args).strip("'").strip('"')
+                        if not raw_filename:
+                            print("\nInvalid filename.\n")
+                            continue
+                        if " " in raw_filename:
+                            print("\nFilenames with spaces are not allowed. Use underscores or dashes.\n")
+                            continue
+
                         filename = args[0]
                         if not filename.endswith(".json"):
                             filename+= ".json"
@@ -212,6 +228,14 @@ def main():
                     print("\nPlease provide the complete file name to load into memory (e.g. /load test1.json)\n")
                     continue
                 else:
+                    raw_filename = " ".join(args).strip("'").strip('"')
+                    if not raw_filename:
+                        print("\nInvalid filename.\n")
+                        continue
+                    if " " in raw_filename:
+                        print("\nFilenames with spaces are not allowed. Use underscores or dashes.\n")
+                        continue
+
                     filename = args[0]
                     full_path = os.path.join("chat_export", filename)
 
@@ -235,7 +259,7 @@ def main():
                         continue
 
                     except (OSError, IOError) as e:
-                        print(f"Error reading file: {e}")
+                        print(f"\nError reading file: {e}\n")
                         continue
 
         else:
@@ -271,7 +295,7 @@ def main():
                     })
                 
                 else:
-                    print("System: Model returned no text.")
+                    print("System: Model returned no text.\n")
 
             except Exception as e:
                 print(f"API Error: {e}")
