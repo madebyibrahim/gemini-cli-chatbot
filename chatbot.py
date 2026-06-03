@@ -3,6 +3,8 @@ import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from datetime import datetime
+import json
 
 # Constants
 AVAILABLE_MODELS = [
@@ -21,6 +23,9 @@ def show_help_menu():
     print("    /model <int>         : Sets the model (and shows list)")
     print("    /exit or /quit       : Ends the session")
     print("    /clear               : Clears the conversation history")
+    print("    /save-human [file]   : Export entire conversation to human-readable .txt file")
+    print("    /save-json [file]    : Export entire conversation to .json file")
+    print("    /load [file]         : Load a previously exported .json conversation")
     print("-------------------------------\n")
 
 def show_models_menu():
@@ -29,13 +34,33 @@ def show_models_menu():
         print(f"   {idx}   {model}")
     print("---------------------------------\n")
 
+def export_chat(filename, history, export_mode):
+    export_dir = "chat_export"
+    os.makedirs(export_dir, exist_ok=True)
+    full_path = os.path.join(export_dir, filename)
+    if export_mode == "human":
+        with open(full_path, "w", encoding="utf-8") as f:
+            for msg in history:
+                role = msg["role"]
+                text = msg["parts"][0]["text"]
+                if role == "user":
+                    f.write(f"You: {text}\n")
+                else:
+                    f.write(f"Gemini: {text}\n")
+                f.write("\n") # empty line separator
+        print(f"System Success: Conversation history saved to {full_path}")
+
+    elif export_mode == "json":
+        with open(full_path, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=2)
+        print(f"System Success: Conversation history saved to {full_path}")
+
 def show_status_menu(current_model, temperature, max_output_tokens, history_length):
     print("\n---------- Status Menu ----------")
     print(f"    Model               : {current_model}")
     print(f"    Temperature         : {temperature}")
     print(f"    Max Output Tokens   : {max_output_tokens}")
     print(f"    Conversation Length : {history_length} messages")
-    ## what other things to add??
     print("---------------------------------\n")
 
 def initialize_client():
@@ -135,6 +160,83 @@ def main():
             elif command == "/help":
                 show_help_menu()
                 continue
+
+            elif command == "/save-human":
+                try:
+                    if not history:
+                        print("\nNothing is saved; conversation is empty.\n")
+                        continue
+
+                    export_mode = "human"
+                    if len(args) == 0:
+                        filename = "chat_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".txt"
+                        export_chat(filename, history, export_mode)
+                        continue
+                    
+                    else:
+                        filename = args[0]
+                        if not filename.endswith(".txt"):
+                            filename += ".txt"
+                        export_chat(filename, history, export_mode)
+                        continue
+
+
+                except (OSError, IOError) as e:
+                    print(f"Error Exporting Chat: {e}")
+                    continue
+
+            elif command == "/save-json":
+                try:
+                    if not history:
+                        print("\nNothing is saved; conversation is empty.\n")
+                        continue
+
+                    export_mode = "json"
+                    if len(args) == 0:
+                        filename = "chat_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".json"
+                        export_chat(filename, history, export_mode)
+                        continue
+                    else:
+                        filename = args[0]
+                        if not filename.endswith(".json"):
+                            filename+= ".json"
+                        export_chat(filename, history, export_mode)
+                        continue
+
+                except (OSError, IOError) as e:
+                    print(f"Error Exporting Chat: {e}")
+                    continue
+
+            elif command == "/load":
+                if len(args) == 0:
+                    print("\nPlease provide the complete file name to load into memory (e.g. /load test1.json)\n")
+                    continue
+                else:
+                    filename = args[0]
+                    full_path = os.path.join("chat_export", filename)
+
+                    try:
+                        with open(full_path, "r", encoding="utf-8") as f:
+                            loaded = json.load(f)
+                        if not isinstance(loaded, list):
+                            print("\nInvalid file format. Conversation must be a list of messages.\n")
+                            continue
+                        
+                        history = loaded # replace history with loaded conversation
+                        print(f"\nSystem Success: Loaded conversation from {full_path} ({len(history)} messages).\n")
+                        continue
+
+                    except FileNotFoundError:
+                        print(f"\nFile not found: {full_path}\n") 
+                        continue
+                    
+                    except json.JSONDecodeError:
+                        print(f"\nSystem Error: {full_path} is not valid JSON.\n")
+                        continue
+
+                    except (OSError, IOError) as e:
+                        print(f"Error reading file: {e}")
+                        continue
 
         else:
             history.append({
